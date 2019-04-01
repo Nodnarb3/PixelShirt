@@ -1,7 +1,9 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,27 +11,37 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Chronometer;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import android.os.SystemClock;
 
 import com.adafruit.bluefruit.le.connect.BluefruitApplication;
 import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.app.neopixel.NeopixelColorPickerFragment;
 import com.larswerkman.holocolorpicker.ColorPicker;
-import com.larswerkman.holocolorpicker.SaturationBar;
-import com.larswerkman.holocolorpicker.ValueBar;
-import com.squareup.leakcanary.RefWatcher;
 
-public class ControllerColorPickerFragment extends Fragment implements ColorPicker.OnColorChangedListener {
+
+import java.util.ArrayList;
+
+public class ControllerColorPickerFragment extends Fragment implements ColorPicker.OnColorChangedListener, View.OnTouchListener {
     // Log
     @SuppressWarnings("unused")
     private final static String TAG = ControllerColorPickerFragment.class.getSimpleName();
@@ -39,16 +51,21 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     private final static String kPreferences = "ColorPickerActivity_prefs";
     private final static String kPreferences_color = "color";
 
-    private final static int kFirstTimeColor = 0x0000ff;
-
-    // UI
-    private ColorPicker mColorPicker;
-    private View mRgbColorView;
-    private TextView mRgbTextView;
+    public int height;
+    public int width;
+    public int third1;
+    public int third2;
+    public int third3;
+    public int length1;
+    public int length2;
+    public int length3;
+    public int length4;
 
     // Data
     private int mSelectedColor;
     private ControllerColorPickerFragmentListener mListener;
+
+    Chronometer mChronometer;
 
     // region Lifecycle
     @SuppressWarnings("UnnecessaryLocalVariable")
@@ -78,45 +95,151 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_controller_colorpicker, container, false);
+        View v =  inflater.inflate(R.layout.fragment_controller_colorpicker, container, false);
+        v.setOnTouchListener(this::onTouch);
+        return v;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // UI
-        mRgbColorView = view.findViewById(R.id.rgbColorView);
-        mRgbTextView = view.findViewById(R.id.rgbTextView);
+        mChronometer = view.findViewById(R.id.simpleChronometer);
 
-        Button sendButton = view.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(view1 -> {
-            // Set the old color
-            mColorPicker.setOldCenterColor(mSelectedColor);
-            mListener.onSendColorComponents(mSelectedColor);
-        });
+        height = getScreenHeight();
+        width = getScreenWidth();
 
-        SaturationBar mSaturationBar = view.findViewById(R.id.brightnessbar);
-        ValueBar mValueBar = view.findViewById(R.id.valuebar);
-        mColorPicker = view.findViewById(R.id.colorPicker);
-        if (mColorPicker != null) {
-            mColorPicker.addSaturationBar(mSaturationBar);
-            mColorPicker.addValueBar(mValueBar);
-            mColorPicker.setOnColorChangedListener(this);
-        }
+        third1 = width / 3;
+        third2 = 2*(width / 3);
+        third3 = width;
 
-        final Context context = getContext();
-        if (context != null && kPersistValues) {
-            SharedPreferences preferences = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
-            mSelectedColor = preferences.getInt(kPreferences_color, kFirstTimeColor);
-        } else {
-            mSelectedColor = kFirstTimeColor;
-        }
+        length1 = height / 4;
+        length2 = 2*(height / 4);
+        length3 = 3*(height / 4);
+        length4 = height;
 
-        mColorPicker.setOldCenterColor(mSelectedColor);
-        mColorPicker.setColor(mSelectedColor);
-        onColorChanged(mSelectedColor);
+        startTimer();
     }
+
+    public void startTimer(){
+        mChronometer.setBase(SystemClock.elapsedRealtime());
+        mChronometer.start();
+        long i = SystemClock.elapsedRealtime();
+        long j = mChronometer.getBase();
+        Log.d("time"," "+  (i - j));
+    }
+
+    public static int getScreenWidth() {
+        return Resources.getSystem().getDisplayMetrics().widthPixels;
+    }
+
+    public static int getScreenHeight() {
+        return Resources.getSystem().getDisplayMetrics().heightPixels;
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+
+        int action = event.getActionMasked();
+
+        int index = event.getActionIndex();
+
+        int evX = (int) event.getX(index);
+        int evY = (int) event.getY(index);
+
+        switch (action) {
+            case MotionEvent.ACTION_UP:
+                //break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                sendColor(evX, evY);
+                //break;
+            case MotionEvent.ACTION_MOVE:
+                sendColor(evX, evY);
+                //break;
+            case MotionEvent.ACTION_DOWN:
+                sendColor(evX, evY);
+                //break;
+        }
+        return true;
+    }
+
+    public void sendColor(int x, int y){
+
+        //top left (red 255 0 0)
+        if(x <= third1 && y <= length1){
+            mSelectedColor = 0xFF0000;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //top middle (orange 255 165 0)
+        if(x <= third2 && x > third1 && y <= length1){
+            mSelectedColor = 0xFFA500;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //top right (yellow, 255 255 0)
+        if(x <= third3 && x > third2 && y <=length1){
+            mSelectedColor = 0xFFFF00;
+            mListener.onSendColorComponents(mSelectedColor);
+
+        }
+
+        //row 2 left (green 0 128 0)
+        if(x <= third1 && y > length1 && y <= length2){
+            mSelectedColor = 0x008000;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 2 middle (blue 0 0 255)
+        if(x <= third2 && x > third1 && y > length1 && y <= length2){
+            mSelectedColor = 0x0000FF;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 2 right (purple 128 0 128)
+        if(x <= third3 && x > third2 && y > length1 && y <= length2){
+            mSelectedColor = 0x800080;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 3 left (pink 255 192 203)
+        if(x <= third1 && y > length2 && y <= length3){
+            mSelectedColor = 0xFFC0CB;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 3 middle (white 255 255 255)
+        if(x <= third2 && x > third1 && y > length2 && y <= length3){
+            mSelectedColor = 0xFFFFFF;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 3 right (light purple 237 221 237 )
+        if(x <= third3 && x > third2 && y > length2 && y <= length3){
+            mSelectedColor = 0xEDDDED;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 4 left (brown 165 42 42)
+        if(x <= third1 && y > length3 && y <= length4){
+            mSelectedColor = 0xA52A2A;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 4 middle (magenta 255 0 255)
+        if(x <= third2 && x > third1 && y > length3 && y <= length4){
+            mSelectedColor = 0xFF00FF;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+
+        //row 4 right (tea green 197 250 192)
+        if(x <= third3 && x > third2 && y > length3 && y <= length4){
+            mSelectedColor = 0xC5FAC0;
+            mListener.onSendColorComponents(mSelectedColor);
+        }
+    }
+
 
     @Override
     public void onStop() {
@@ -190,14 +313,6 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
         // Save selected color
         mSelectedColor = color;
 
-        // Update UI
-        mRgbColorView.setBackgroundColor(color);
-
-        final int r = (color >> 16) & 0xFF;
-        final int g = (color >> 8) & 0xFF;
-        final int b = (color >> 0) & 0xFF;
-        final String text = String.format(getString(R.string.colorpicker_rgb_format), r, g, b);
-        mRgbTextView.setText(text);
     }
 
 
