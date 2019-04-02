@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -36,6 +38,8 @@ import com.adafruit.bluefruit.le.connect.BluefruitApplication;
 import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.app.neopixel.NeopixelColorPickerFragment;
+import com.devs.vectorchildfinder.VectorChildFinder;
+import com.devs.vectorchildfinder.VectorDrawableCompat;
 import com.larswerkman.holocolorpicker.ColorPicker;
 
 
@@ -51,21 +55,14 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     private final static String kPreferences = "ColorPickerActivity_prefs";
     private final static String kPreferences_color = "color";
 
-    public int height;
-    public int width;
-    public int third1;
-    public int third2;
-    public int third3;
-    public int length1;
-    public int length2;
-    public int length3;
-    public int length4;
 
     // Data
-    private int mSelectedColor;
     private ControllerColorPickerFragmentListener mListener;
 
-    Chronometer mChronometer;
+    ImageView drawGrid;
+    ImageView mask;
+
+    VectorDrawableCompat.VFullPath[] pixels = new VectorDrawableCompat.VFullPath[45];
 
     // region Lifecycle
     @SuppressWarnings("UnnecessaryLocalVariable")
@@ -105,141 +102,71 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mChronometer = view.findViewById(R.id.simpleChronometer);
-
-        height = getScreenHeight();
-        width = getScreenWidth();
-
-        third1 = width / 3;
-        third2 = 2*(width / 3);
-        third3 = width;
-
-        length1 = height / 4;
-        length2 = 2*(height / 4);
-        length3 = 3*(height / 4);
-        length4 = height;
-
-        startTimer();
+        drawGrid = view.findViewById(R.id.drawGrid);
+        mask = view.findViewById(R.id.mask);
+        mask.setImageResource(R.drawable.ic_5x9mask);
+        VectorChildFinder vectorFinder = new VectorChildFinder(this.getContext(), R.drawable.ic_5x9mask, drawGrid);
+        for(int i = 1; i <= 45; i++)
+        {
+            VectorDrawableCompat.VFullPath path = vectorFinder.findPathByName(String.valueOf(i));
+            pixels[i-1] = path;
+            pixels[i-1].setFillColor(Color.WHITE);
+            pixels[i-1].setStrokeWidth(1);
+            pixels[i-1].setStrokeAlpha(1f);
+            pixels[i-1].setStrokeColor(Color.BLACK);
+            drawGrid.invalidate();
+        }
     }
 
-    public void startTimer(){
-        mChronometer.setBase(SystemClock.elapsedRealtime());
-        mChronometer.start();
-        long i = SystemClock.elapsedRealtime();
-        long j = mChronometer.getBase();
-        Log.d("time"," "+  (i - j));
-    }
-
-    public static int getScreenWidth() {
-        return Resources.getSystem().getDisplayMetrics().widthPixels;
-    }
-
-    public static int getScreenHeight() {
-        return Resources.getSystem().getDisplayMetrics().heightPixels;
-    }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-
         int action = event.getActionMasked();
 
-        int index = event.getActionIndex();
-
-        int evX = (int) event.getX(index);
-        int evY = (int) event.getY(index);
+        int evX = (int) event.getX();
+        int evY = (int) event.getY();
 
         switch (action) {
             case MotionEvent.ACTION_UP:
-                //break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                sendColor(evX, evY);
-                //break;
+                colorGrid(evX, evY);
+                break;
             case MotionEvent.ACTION_MOVE:
-                sendColor(evX, evY);
-                //break;
+                colorGrid(evX, evY);
+                break;
             case MotionEvent.ACTION_DOWN:
-                sendColor(evX, evY);
-                //break;
+                break;
         }
+
         return true;
     }
 
-    public void sendColor(int x, int y){
-
-        //top left (red 255 0 0)
-        if(x <= third1 && y <= length1){
-            mSelectedColor = 0xFF0000;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //top middle (orange 255 165 0)
-        if(x <= third2 && x > third1 && y <= length1){
-            mSelectedColor = 0xFFA500;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //top right (yellow, 255 255 0)
-        if(x <= third3 && x > third2 && y <=length1){
-            mSelectedColor = 0xFFFF00;
-            mListener.onSendColorComponents(mSelectedColor);
-
-        }
-
-        //row 2 left (green 0 128 0)
-        if(x <= third1 && y > length1 && y <= length2){
-            mSelectedColor = 0x008000;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 2 middle (blue 0 0 255)
-        if(x <= third2 && x > third1 && y > length1 && y <= length2){
-            mSelectedColor = 0x0000FF;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 2 right (purple 128 0 128)
-        if(x <= third3 && x > third2 && y > length1 && y <= length2){
-            mSelectedColor = 0x800080;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 3 left (pink 255 192 203)
-        if(x <= third1 && y > length2 && y <= length3){
-            mSelectedColor = 0xFFC0CB;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 3 middle (white 255 255 255)
-        if(x <= third2 && x > third1 && y > length2 && y <= length3){
-            mSelectedColor = 0xFFFFFF;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 3 right (light purple 237 221 237 )
-        if(x <= third3 && x > third2 && y > length2 && y <= length3){
-            mSelectedColor = 0xEDDDED;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 4 left (brown 165 42 42)
-        if(x <= third1 && y > length3 && y <= length4){
-            mSelectedColor = 0xA52A2A;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 4 middle (magenta 255 0 255)
-        if(x <= third2 && x > third1 && y > length3 && y <= length4){
-            mSelectedColor = 0xFF00FF;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
-
-        //row 4 right (tea green 197 250 192)
-        if(x <= third3 && x > third2 && y > length3 && y <= length4){
-            mSelectedColor = 0xC5FAC0;
-            mListener.onSendColorComponents(mSelectedColor);
-        }
+    public void sendColor(int pixel){
+        mListener.onSendColorComponents(pixel,Color.CYAN);
     }
 
+    void colorGrid(int x, int y)
+    {
+        int mask = getMaskColor(R.id.mask, x, y);
+        int pixel = Math.round(Color.valueOf(mask).red() * 255);
+
+        if(pixel < 0 || pixel > 45) return;
+        pixels[pixel-1].setFillColor(Color.CYAN);
+        drawGrid.invalidate();
+
+        sendColor(pixel);
+    }
+
+    public int getMaskColor(int hotspot, int x, int y) {
+        mask.setDrawingCacheEnabled(true);
+        Bitmap hotspots = Bitmap.createBitmap(mask.getDrawingCache());
+        mask.setDrawingCacheEnabled(false);
+
+        if (y > hotspots.getHeight() || x > hotspots.getWidth() || y < 0 || x < 0) {
+            return -1;
+        }
+
+        return hotspots.getPixel(x, y);
+    }
 
     @Override
     public void onStop() {
@@ -249,8 +176,8 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
         if (context != null && kPersistValues) {
             SharedPreferences settings = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = settings.edit();
-            editor.putInt(kPreferences_color, mSelectedColor);
-            editor.apply();
+            //editor.putInt(kPreferences_color, mSelectedColor);
+            //editor.apply();
         }
 
         super.onStop();
@@ -311,7 +238,7 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     @Override
     public void onColorChanged(int color) {
         // Save selected color
-        mSelectedColor = color;
+        //mSelectedColor = color;
 
     }
 
@@ -320,7 +247,7 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
 
     // region
     interface ControllerColorPickerFragmentListener {
-        void onSendColorComponents(int color);
+        void onSendColorComponents(int pixel, int color);
     }
 
     // endregion

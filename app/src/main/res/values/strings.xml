@@ -427,7 +427,6 @@
     <string name="colorpicker_help_text">The Color Picker sends a color\'s RGB values to Bluefruit LE.  This can be used to control the state of RGB LEDs such as Neopixels.\n\n• Touch the color wheel to choose desired color\n\n• Press Send to send the chosen color\'s red, green, and blue values to Bluefruit via UART in the following format:\n[ ‘!’ ] [ ‘C’ ] [ byte r ] [ byte g ] [ byte b ]</string>
 
 
-
     <!-- NeoPixels -->
     <string name="neopixels_tab_title">Neopixels</string>
     <string name="neopixels_navigation_title_format" formatted="false">Neopixels - %s</string>

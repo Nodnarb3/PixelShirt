@@ -15,6 +15,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,6 +47,7 @@ import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.ble.central.UartDataManager;
+import com.adafruit.bluefruit.le.connect.pixelShirt;
 import com.adafruit.bluefruit.le.connect.utils.AdapterUtils;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
@@ -1016,16 +1018,18 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     // region ControllerColorPickerFragmentListener
     @SuppressWarnings({"PointlessBitwiseExpression", "PointlessArithmeticExpression"})
     @Override
-    public void onSendColorComponents(int color) {
+    public void onSendColorComponents(int pixel, int color) {
+        final byte p = (byte) (pixel & 0xFF);
         // Send selected color !Crgb
         final byte r = (byte) ((color >> 16) & 0xFF);
         final byte g = (byte) ((color >> 8) & 0xFF);
         final byte b = (byte) ((color >> 0) & 0xFF);
 
-        ByteBuffer buffer = ByteBuffer.allocate(2 + 3 * 1).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.allocate(1 + 2 + 3 * 1).order(java.nio.ByteOrder.LITTLE_ENDIAN);
 
         // prefix
         String prefix = "!C";
+        buffer.put(p);
         buffer.put(prefix.getBytes());
 
         // values
