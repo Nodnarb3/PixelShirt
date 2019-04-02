@@ -30,12 +30,28 @@ tools:context=".app.ControllerColorPickerFragment">
             tools:srcCompat="@drawable/ic_5x9mask" />
     </RelativeLayout>
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/palette"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="10">
+        android:layout_weight="10"
+        android:orientation="horizontal">
 
-    </FrameLayout>
+        <ImageButton
+            android:id="@+id/clear"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="0dp"
+            android:layout_weight="10"
+            android:src="@android:drawable/ic_menu_delete" />
+
+        <ImageView
+            android:id="@+id/colorPicker"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="90"
+            android:scaleType="fitXY"
+            android:src="@drawable/gradient" />
+    </LinearLayout>
 </LinearLayout>
 </RelativeLayout>

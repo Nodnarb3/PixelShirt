@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +62,23 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
 
     ImageView drawGrid;
     ImageView mask;
+    ImageButton clearAll;
+
+    ImageView colorPicker;
+
+    int[] ledMap = new int[]
+            {
+                    20, 19, 10, 9,  0,
+                    29, 31, 39, 41, 49,
+                    21, 18, 11, 8,  1,
+                    28, 32, 38, 42, 48,
+                    22, 17, 12, 7,  2,
+                    27, 61, 37, 43, 47, //special case for shirt pixel 33 since ! = 33 = 0x21
+                    23, 16, 13, 6,  3,
+                    26, 34, 36, 44, 46,
+                    24, 15, 14, 5,  4
+            };
+
 
     VectorDrawableCompat.VFullPath[] pixels = new VectorDrawableCompat.VFullPath[45];
 
@@ -79,12 +97,16 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         AppCompatActivity activity = (AppCompatActivity) getActivity();
+        //activity.requestWindowFeature(activity.getWindow().FEATURE_NO_TITLE);
         if (activity != null) {
             ActionBar actionBar = activity.getSupportActionBar();
             if (actionBar != null) {
-                actionBar.setTitle(R.string.colorpicker_title);
-                actionBar.setDisplayHomeAsUpEnabled(true);
+//                actionBar.setTitle(R.string.colorpicker_title);
+                actionBar.hide();
+//                actionBar.setDisplayHomeAsUpEnabled(true);
+
             }
         }
     }
@@ -101,10 +123,38 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        clearAll = view.findViewById(R.id.clear);
+        clearAll.setOnClickListener(v -> {
+            sendColor(60, Color.BLACK);
+            for (VectorDrawableCompat.VFullPath pixel:pixels) {
+                pixel.setFillColor(Color.WHITE);
+                drawGrid.invalidate();
+            }
+        });
         drawGrid = view.findViewById(R.id.drawGrid);
         mask = view.findViewById(R.id.mask);
         mask.setImageResource(R.drawable.ic_5x9mask);
+        colorPicker = view.findViewById(R.id.colorPicker);
+        colorPicker.setImageResource(R.drawable.gradient);
+
+        colorPicker.setOnTouchListener((v, event) -> {
+            int action = event.getActionMasked();
+            int evX = (int) event.getX();
+            int evY = (int) event.getY();
+
+            switch (action) {
+                case MotionEvent.ACTION_UP:
+                    selectedColor = getColorPicker(evX, evY);
+
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    selectedColor = getColorPicker(evX, evY);
+                    break;
+                case MotionEvent.ACTION_DOWN:
+                    break;
+            }
+            return true;
+        });
         VectorChildFinder vectorFinder = new VectorChildFinder(this.getContext(), R.drawable.ic_5x9mask, drawGrid);
         for(int i = 1; i <= 45; i++)
         {
@@ -122,7 +172,6 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int action = event.getActionMasked();
-
         int evX = (int) event.getX();
         int evY = (int) event.getY();
 
@@ -134,15 +183,20 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
                 colorGrid(evX, evY);
                 break;
             case MotionEvent.ACTION_DOWN:
+                colorGrid(evX, evY);
                 break;
         }
-
         return true;
     }
 
-    public void sendColor(int pixel){
-        mListener.onSendColorComponents(pixel,Color.CYAN);
+    public void sendColor(int pixel, int color){
+        Log.v(TAG, "Shirt Pixel: " + pixel);
+        mListener.onSendColorComponents(pixel, color);
     }
+
+    private int lastPixel = -1;
+    private int lastColor = Color.TRANSPARENT;
+    private int selectedColor = Color.GREEN;
 
     void colorGrid(int x, int y)
     {
@@ -150,10 +204,29 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
         int pixel = Math.round(Color.valueOf(mask).red() * 255);
 
         if(pixel < 0 || pixel > 45) return;
-        pixels[pixel-1].setFillColor(Color.CYAN);
+        pixels[pixel-1].setFillColor(selectedColor);
         drawGrid.invalidate();
 
-        sendColor(pixel);
+        if(lastPixel != pixel || pixels[pixel-1].getFillColor() != lastColor)
+        {
+            Log.v(TAG, "Logical Pixel: " + (pixel-1));
+            sendColor(ledMap[pixel-1], selectedColor);
+            lastPixel = pixel;
+            lastColor = selectedColor;
+        }
+    }
+
+    public int getColorPicker(int x, int y)
+    {
+        colorPicker.setDrawingCacheEnabled(true);
+        Bitmap hotspots = Bitmap.createBitmap(colorPicker.getDrawingCache());
+        colorPicker.setDrawingCacheEnabled(false);
+
+        if (y > hotspots.getHeight() || x > hotspots.getWidth() || y < 0 || x < 0) {
+            return -1;
+        }
+
+        return hotspots.getPixel(x, y);
     }
 
     public int getMaskColor(int hotspot, int x, int y) {
