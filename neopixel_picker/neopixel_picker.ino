@@ -63,7 +63,7 @@ FASTLED_USING_NAMESPACE
     #define FACTORYRESET_ENABLE     1
 
     #define PIN                     6
-    #define NUMPIXELS               10
+    #define NUMPIXELS               50
     #define LED_TYPE                WS2812B
     #define MAX_BRIGHTNESS     255
     #define COLOR_ORDER GRB
@@ -190,11 +190,11 @@ void setup(void)
 void loop(void)
 {
   /* Wait for new data to arrive */
-  uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
+  uint8_t len = readPacket(&ble, 100);
   if (len == 0) return;
 
   /* Got a packet! */
-  // printHex(packetbuffer, len);
+  printHex(packetbuffer, len);
 
   // Color
   if (packetbuffer[1] == 'C') {
@@ -202,11 +202,28 @@ void loop(void)
     uint8_t green = packetbuffer[3];
     uint8_t blue = packetbuffer[4];
     uint8_t pix = packetbuffer[5]; 
-    
 
-    leds[pix] = CRGB(red, green, blue);
+    if(pix == 60){
+      fillBlack();
+    }
+
+    if(pix == 55){
+      leds[33] = CRGB(red, green, blue);
+    }
+
+    if(red == 255 && green == 255 && blue == 255){
+      leds[pix] = CRGB(0,0,0);
+    }
+    else {
+      leds[pix] = CRGB(red, green, blue);
+    }
+    
     FastLED.show();
+  }
+}
 
-    
+void fillBlack(){
+  for(int i = 0; i < NUMPIXELS; i++){
+      leds[i] = CRGB(0,0,0);
   }
 }
