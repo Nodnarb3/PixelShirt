@@ -1,12 +1,9 @@
 /*********************************************************************
  This is an example for our nRF51822 based Bluefruit LE modules
-
  Pick one up today in the adafruit shop!
-
  Adafruit invests time and resources providing this open source code,
  please support Adafruit and open-source hardware by purchasing
  products from Adafruit!
-
  MIT license, check LICENSE for more information
  All text above, and the splash screen below must be included in
  any redistribution
@@ -25,10 +22,18 @@
 
 #include "BluefruitConfig.h"
 
+#include <FastLED.h>
+#include <colorutils.h>
+
+FASTLED_USING_NAMESPACE
+#if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
+#warning "Requires FastLED 3.1 or later; check github for latest code."
+#endif
+
+
 
 /*=========================================================================
     APPLICATION SETTINGS
-
     FACTORYRESET_ENABLE       Perform a factory reset when running this sketch
    
                               Enabling this will put your Bluefruit LE module
@@ -58,15 +63,22 @@
     #define FACTORYRESET_ENABLE     1
 
     #define PIN                     6
-    #define NUMPIXELS               12
+    #define NUMPIXELS               10
+    #define LED_TYPE                WS2812B
+    #define MAX_BRIGHTNESS     255
+    #define COLOR_ORDER GRB
+    CRGB leds[NUMPIXELS];
+
+    //const int ledPin =  LED_BUILTIN;      // the number of the LED pin for turning on and off, not the LEDs that will be changing colours
+    //const int vibePin = 6;
 /*=========================================================================*/
 
-Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN);
+//Adafruit_NeoPixel pixel = Adafruit_NeoPixel(NUMPIXELS, PIN, LED_TYPE);
+
 
 // Create the bluefruit object, either software serial...uncomment these lines
 /*
 SoftwareSerial bluefruitSS = SoftwareSerial(BLUEFRUIT_SWUART_TXD_PIN, BLUEFRUIT_SWUART_RXD_PIN);
-
 Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
                       BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
 */
@@ -97,7 +109,6 @@ void printHex(const uint8_t * data, const uint32_t numBytes);
 // the packet buffer
 extern uint8_t packetbuffer[];
 
-int getLastRed;
 
 
 /**************************************************************************/
@@ -109,10 +120,19 @@ int getLastRed;
 void setup(void)
 {
   // turn off neopixel
-  pixel.begin(); // This initializes the NeoPixel library.
-  allOff();
+  //pixel.begin(); // This initializes the NeoPixel library.
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
+
+  FastLED.addLeds<LED_TYPE, PIN, COLOR_ORDER>(leds, NUMPIXELS).setCorrection(TypicalLEDStrip);
+
+  FastLED.setBrightness(MAX_BRIGHTNESS);
+  //pinMode(ledPin, OUTPUT);
+  //pinMode(vibePin, OUTPUT);
+  Serial.begin(9600);
+
+
+  
   Serial.println(F("Adafruit Bluefruit Neopixel Color Picker Example"));
   Serial.println(F("------------------------------------------------"));
 
@@ -181,80 +201,12 @@ void loop(void)
     uint8_t red = packetbuffer[2];
     uint8_t green = packetbuffer[3];
     uint8_t blue = packetbuffer[4];
+    uint8_t pix = packetbuffer[5]; 
+    
 
-    if(red == 255 && green == 0 && blue == 0){
-      allOff();
-      setRed(0);
-    }
+    leds[pix] = CRGB(red, green, blue);
+    FastLED.show();
 
-    if(red == 0 && green == 128 && blue == 0){
-      allOff();
-      setRed(1);
-    }
-
-    if(red == 255 && green == 192 && blue == 203){
-      allOff();
-      setRed(2);
-    }
-
-    if(red == 165 && green == 42 && blue == 42){
-      allOff();
-      setRed(3);
-    }
-
-    if(red == 255 && green == 165 && blue == 0){
-      allOff();
-      setRed(7);
-    }
-
-    if(red == 0 && green == 0 && blue == 255){
-      allOff();
-      setRed(6);
-    }
-
-    if(red == 255 && green == 255 && blue == 255){
-      allOff();
-      setRed(5);
-    } 
-
-    if(red == 255 && green == 0 && blue == 255){
-      allOff();
-      setRed(4);
-    }
-
-    if(red == 255 && green == 255 && blue == 0){
-      allOff();
-      setRed(8);
-    } 
-
-    if(red == 128 && green == 0 && blue == 128){
-      allOff();
-      setRed(9);
-    } 
-
-    if(red == 237 && green == 221 && blue == 237){
-      allOff();
-      setRed(10);
-    } 
-
-    if(red == 197 && green == 250 && blue == 192){
-      allOff();
-      setRed(11);
-    }   
-    pixel.show(); // This sends the updated pixel color to the hardware.
+    
   }
-
-}
-
-
-
-void setRed(int pix){
-  pixel.setPixelColor(pix, pixel.Color(255,0,0));
-}
-
-void allOff(){
-  for(uint8_t i=0; i<NUMPIXELS; i++) {
-    pixel.setPixelColor(i, pixel.Color(0,0,255)); // off
-  }
-  pixel.show();
 }

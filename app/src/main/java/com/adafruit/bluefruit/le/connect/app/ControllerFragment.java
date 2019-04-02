@@ -1019,23 +1019,25 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     @SuppressWarnings({"PointlessBitwiseExpression", "PointlessArithmeticExpression"})
     @Override
     public void onSendColorComponents(int pixel, int color) {
-        final byte p = (byte) (pixel & 0xFF);
+
         // Send selected color !Crgb
         final byte r = (byte) ((color >> 16) & 0xFF);
         final byte g = (byte) ((color >> 8) & 0xFF);
         final byte b = (byte) ((color >> 0) & 0xFF);
+        final byte p = (byte) (pixel & 0xFF);
+
 
         ByteBuffer buffer = ByteBuffer.allocate(1 + 2 + 3 * 1).order(java.nio.ByteOrder.LITTLE_ENDIAN);
 
         // prefix
         String prefix = "!C";
-        buffer.put(p);
         buffer.put(prefix.getBytes());
 
         // values
         buffer.put(r);
         buffer.put(g);
         buffer.put(b);
+        buffer.put(p);
 
         byte[] result = buffer.array();
         sendCrcData(result);
