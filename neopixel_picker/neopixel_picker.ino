@@ -65,7 +65,7 @@ FASTLED_USING_NAMESPACE
     #define PIN                     6
     #define NUMPIXELS               50
     #define LED_TYPE                WS2812B
-    #define MAX_BRIGHTNESS     255
+    #define MAX_BRIGHTNESS     100
     #define COLOR_ORDER GRB
     CRGB leds[NUMPIXELS];
 
@@ -206,17 +206,12 @@ void loop(void)
     if(pix == 60){
       fillBlack();
     }
-
-    if(pix == 55){
-      leds[33] = CRGB(red, green, blue);
+    
+    if(pix == 61){
+      pix = 33;
     }
-
-    if(red == 255 && green == 255 && blue == 255){
-      leds[pix] = CRGB(0,0,0);
-    }
-    else {
-      leds[pix] = CRGB(red, green, blue);
-    }
+    
+    leds[pix] = CRGB(red, green, blue); 
     
     FastLED.show();
   }
