@@ -30,6 +30,7 @@ import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,8 +64,13 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     ImageView drawGrid;
     ImageView mask;
     ImageButton clearAll;
-
+    View curColor;
+    ImageView pointerImage;
     ImageView colorPicker;
+
+    View palette;
+
+    boolean pickingColor = false;
 
     int[] ledMap = new int[]
             {
@@ -127,10 +133,12 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
         clearAll.setOnClickListener(v -> {
             sendColor(60, Color.BLACK);
             for (VectorDrawableCompat.VFullPath pixel:pixels) {
-                pixel.setFillColor(Color.WHITE);
+                pixel.setFillColor(Color.BLACK);
                 drawGrid.invalidate();
             }
         });
+        palette = view.findViewById(R.id.palette);
+        curColor = view.findViewById(R.id.curColor);
         drawGrid = view.findViewById(R.id.drawGrid);
         mask = view.findViewById(R.id.mask);
         mask.setImageResource(R.drawable.ic_5x9mask);
@@ -144,13 +152,32 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
 
             switch (action) {
                 case MotionEvent.ACTION_UP:
-                    selectedColor = getColorPicker(evX, evY);
-
+                    if(pickingColor)
+                    {
+                        selectedColor = getColorPicker(evX, evY);
+                        curColor.setBackgroundColor(selectedColor);
+                        removePointer();
+                        pickingColor = false;
+                    }
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    selectedColor = getColorPicker(evX, evY);
+                    if(evY < 0 || evX < 0){
+                        removePointer();
+                        pickingColor = false;
+                        break;
+                    }
+                    if(pickingColor)
+                    {
+                        selectedColor = getColorPicker(evX, evY);
+                        curColor.setBackgroundColor(selectedColor);
+                        moveColorIcon(evX + ((View)v.getParent()).getLeft(), evY + palette.getTop());
+                    }
                     break;
                 case MotionEvent.ACTION_DOWN:
+                    selectedColor = getColorPicker(evX, evY);
+                    curColor.setBackgroundColor(selectedColor);
+                    createPointer(evX + ((View)v.getParent()).getLeft(), evY + palette.getTop());
+                    pickingColor = true;
                     break;
             }
             return true;
@@ -160,14 +187,40 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
         {
             VectorDrawableCompat.VFullPath path = vectorFinder.findPathByName(String.valueOf(i));
             pixels[i-1] = path;
-            pixels[i-1].setFillColor(Color.WHITE);
+            pixels[i-1].setFillColor(Color.BLACK);
             pixels[i-1].setStrokeWidth(1);
             pixels[i-1].setStrokeAlpha(1f);
-            pixels[i-1].setStrokeColor(Color.BLACK);
+            pixels[i-1].setStrokeColor(Color.WHITE);
             drawGrid.invalidate();
         }
     }
 
+    private void removePointer() {
+        ((RelativeLayout)this.getView().findViewById(R.id.mainView)).removeView(pointerImage);
+    }
+
+    private void createPointer(int x, int y)
+    {
+        pointerImage = new ImageView(this.getContext());
+        pointerImage.setImageResource(R.drawable.ic_dragblob);
+        pointerImage.setColorFilter(selectedColor);
+        ((RelativeLayout)this.getView().findViewById(R.id.mainView)).addView(pointerImage);
+        pointerImage.setScaleType(ImageView.ScaleType.CENTER);
+        pointerImage.setScaleX(1f);
+        pointerImage.setScaleY(1f);
+        pointerImage.setX(x - (pointerImage.getWidth()/2f));
+        pointerImage.setY(y - (pointerImage.getHeight()));
+
+    }
+
+    private void moveColorIcon(int x, int y)
+    {
+        if(pointerImage != null) {
+            pointerImage.setX(x - (pointerImage.getWidth() / 2f));
+            pointerImage.setY(y - (pointerImage.getHeight()));
+            pointerImage.setColorFilter(selectedColor);
+        }
+    }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
