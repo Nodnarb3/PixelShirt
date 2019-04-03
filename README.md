@@ -9,7 +9,9 @@ Group Members:
 ---
 
 ## Arduino
-1) Ensure that Arduino is plugged into a power source (computer)
+1) Follow the steps at https://learn.adafruit.com/adafruit-feather-m0-bluefruit-le/setup to set up using the Arduino IDE with the Adafruit Feather M0 Bluefruit LE board. 
+2) Upload the Arduino Code from the neopixel_picker folder to the board 
+3) Ensure that Arduino is plugged into a power source (computer or battery)
 
 ## Build App:
 1) Clone/download the repo
@@ -31,4 +33,4 @@ Group Members:
 6) Tap or drag pattern on the grid (slowly)
 7) Select black to erase box(es)
 8) Select the trashcan to clear the grid
-9) If app crashes at any point, simply restart the app
+9) If app crashes at any point, simply restart the app 
