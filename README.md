@@ -1,33 +1,36 @@
-# Bluefruit_LE_Connect_Android_V2
+# Pixel Shirt
+CPSC 581 - Project 3 - Fashion Technology
 
-Android app for use with Bluefruit Bluetooth LE modules and dev boards from Adafruit.
+Group Members:
+- Brandon Slack
+- Lamess Kharfan
+- Shaheed Murji
+- Noor Hammad
+---
 
+## Arduino
+1) Follow the steps at https://learn.adafruit.com/adafruit-feather-m0-bluefruit-le/setup to set up using the Arduino IDE with the Adafruit Feather M0 Bluefruit LE board. 
+2) Upload the Arduino Code from the neopixel_picker folder to the board 
+3) Ensure that Arduino is plugged into a power source (computer or battery)
 
-## App Versions
+## Build App:
+1) Clone/download the repo
+2) Open the project in Android Studio
+3) If opened for the first time, Android Studio will sync the project and configure the build
+4) Build > Clean Project
 
-- Master branch is for version 3.x of the app (Android) 
-
-- The source code for previous unsupported versions is available at [Bluefruit_LE_Connect_Android](https://github.com/adafruit/Bluefruit_LE_Connect_Android).
-
-
-## Supported Hardware
-
-Adafruit invests time and resources providing this open source code, please support Adafruit and open-source hardware by purchasing products from Adafruit!
-
-This application works with the following Bluefruit LE devices from Adafruit:
-
-- [Bluefruit LE Friend](https://www.adafruit.com/product/2267)
-- [Bluefruit LE UART Friend](https://www.adafruit.com/product/2479)
-- [Bluefruit LE SPI Friend](https://www.adafruit.com/product/2633)
-- [Bluefruit LE Shield](https://www.adafruit.com/products/2746)
-- [Bluefruit LE Micro](https://www.adafruit.com/product/2661) (Retired)
-- [Feather 32u4 Bluefruit LE](https://www.adafruit.com/product/2829)
-- [Feather M0 Bluefruit LE](https://www.adafruit.com/products/2995)
-
-## License
-
-Unless otherwise specified, all files produced by Adafruit are covered by an [MIT license](https://github.com/adafruit/Bluefruit_LE_Connect_Android/blob/master/license.txt).
-
-Files produced by Nordic Semiconductors are covered by their own license terms, as detailed in the file headers and appropriate folders. Please carefully review the license requirements before using this source code in your own application.
-
-
+## Run:
+1) Run > Run 'app'
+2) Ensure ADB is configured 
+- Set up an emulator, or
+- Plug in an Android device (follow https://developer.android.com/training/basics/firstapp/running-app for setting up a real Android device)
+3) Wait until app has been installed on emulator or Android device
+4) When app opens, select 'Connect' by Adafruit Feather M0 Bluefruit LE
+  - Wait until connection has been established 
+  - Select 'Controller'
+  - Select 'Color Picker'
+5) Select desired colour from the palette
+6) Tap or drag pattern on the grid (slowly)
+7) Select black to erase box(es)
+8) Select the trashcan to clear the grid
+9) If app crashes at any point, simply restart the app 

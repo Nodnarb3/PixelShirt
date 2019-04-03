@@ -1,41 +1,72 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-tools:context=".app.ControllerColorPickerFragment">
-
-<LinearLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    tools:context=".app.ControllerColorPickerFragment">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="90">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/mask"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            tools:srcCompat="@drawable/ic_5x9mask" />
+            android:layout_height="0dp"
+            android:layout_weight="90">
 
-        <ImageView
-            android:id="@+id/drawGrid"
+            <ImageView
+                android:id="@+id/mask"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                tools:srcCompat="@drawable/ic_5x9mask" />
+
+            <ImageView
+                android:id="@+id/drawGrid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                tools:srcCompat="@drawable/ic_5x9mask" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/palette"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            tools:srcCompat="@drawable/ic_5x9mask" />
-    </RelativeLayout>
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:orientation="horizontal">
 
-    <FrameLayout
-        android:id="@+id/palette"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="10">
+            <ImageButton
+                android:id="@+id/clear"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="0dp"
+                android:layout_weight="10"
+                android:src="@android:drawable/ic_menu_delete" />
 
-    </FrameLayout>
-</LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="90"
+                android:orientation="vertical">
+
+                <View
+                    android:id="@+id/curColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="10" />
+
+                <ImageView
+                    android:id="@+id/colorPicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="90"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/gradient" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
 </RelativeLayout>
